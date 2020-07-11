@@ -18,8 +18,8 @@ LR_CRITIC = 1e-3        # learning rate of the critic
 WEIGHT_DECAY = 0        # L2 weight decay
 UPDATE_EVERY = 1        # update the network after every UPDATE_EVERY timestep
 UPDATE_TIMES = 1        # update UPDATE_TIME for every update
-#EPSILON = 1             # epsilon noise parameter
-NOISE_DECAY = 0.999    # decay parameter of epsilon
+EPSILON = 1             # epsilon noise parameter
+EPSILON_DECAY = 1e-5    # decay parameter of epsilon
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 #device = "cpu"
@@ -57,7 +57,7 @@ class Agent():
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
         
         # Epsilon
-        self.epsilon = NOISE_DECAY
+        self.epsilon = EPSILON
         
 #         # Make sure target is with the same weight as the source
 #         self.hard_update(self.actor_target, self.actor_local)
@@ -87,9 +87,12 @@ class Agent():
         
         if add_noise:
             
-            action += self.epsilon*self.noise.sample()
             # epsilon decay 
-            self.epsilon *= self.epsilon
+            self.epsilon -= EPSILON_DECAY
+            self.epsilon=np.maximum(self.epsilon,0.001)
+            action += self.epsilon*self.noise.sample()
+            
+            
 
         return np.clip(action, -1, 1)
         
