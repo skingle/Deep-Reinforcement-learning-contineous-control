@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#unity env
+Reacher_Windows_x86_64/
+
 # C extensions
 *.so
 
