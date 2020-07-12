@@ -19,7 +19,7 @@ WEIGHT_DECAY = 0        # L2 weight decay
 UPDATE_EVERY = 1        # update the network after every UPDATE_EVERY timestep
 UPDATE_TIMES = 1        # update UPDATE_TIME for every update
 EPSILON = 1             # epsilon noise parameter
-EPSILON_DECAY = 1e-5    # decay parameter of epsilon
+EPSILON_DECAY = 0       # decay parameter of epsilon
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 #device = "cpu"
@@ -27,7 +27,7 @@ print(device)
 class Agent():
     """Interacts with and learns from the environment."""
     
-    def __init__(self, state_size, action_size, random_seed):
+    def __init__(self, state_size, action_size, n_agents, random_seed):
         """Initialize an Agent object.
         
         Params
@@ -51,7 +51,7 @@ class Agent():
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
 
         # Noise process
-        self.noise = OUNoise(action_size, random_seed)
+        self.noise = OUNoise((n_agents, action_size), random_seed)
 
         # Replay memory
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
@@ -159,7 +159,17 @@ class Agent():
         """
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
-
+    
+    def load_weights(self,cp_actor,cp_critic):
+        self.critic_local.load_state_dict(torch.load(cp_critic))
+        self.actor_local.load_state_dict(torch.load(cp_actor))
+    
+    def eval_act(self,state):
+        self.actor_local.eval()
+        with torch.no_grad():
+            action = self.actor_local(state).cpu().data.numpy()
+        return action
+        
 class OUNoise:
     """Ornstein-Uhlenbeck process."""
 
@@ -170,6 +180,7 @@ class OUNoise:
         self.sigma = sigma
         self.seed = random.seed(seed)
         self.reset()
+        self.size = size
 
     def reset(self):
         """Reset the internal state (= noise) to mean (mu)."""
@@ -178,7 +189,8 @@ class OUNoise:
     def sample(self):
         """Update internal state and return it as a noise sample."""
         x = self.state
-        dx = self.theta * (self.mu - x) + self.sigma * np.array([random.random() for i in range(len(x))])
+        #dx = self.theta * (self.mu - x) + self.sigma * np.array([random.random() for i in range(len(x))])
+        dx = self.theta * (self.mu - x) + self.sigma * np.random.standard_normal(self.size)
         self.state = x + dx
         return self.state
 
