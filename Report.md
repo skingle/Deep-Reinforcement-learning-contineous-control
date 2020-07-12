@@ -47,6 +47,20 @@ Ornstein-Uhlenbeck process provide us with the noise that is add to action for b
 For this environment, the exploration is very important with the use of Noise. Training took very long time at first few days. With proper noise the agent has achieved the score with in 30 min.
 
 ## Results
+### hyperparameter
+```python
+BUFFER_SIZE = int(1e5)  # replay buffer size
+BATCH_SIZE = 128        # minibatch size
+GAMMA = 0.99            # discount factor
+TAU = 1e-3              # for soft update of target parameters
+LR_ACTOR = 1e-3         # learning rate of the actor 
+LR_CRITIC = 1e-3        # learning rate of the critic
+WEIGHT_DECAY = 0        # L2 weight decay
+UPDATE_EVERY = 1        # update the network after every UPDATE_EVERY timestep
+UPDATE_TIMES = 1        # update UPDATE_TIME for every update
+EPSILON = 1             # epsilon noise parameter
+EPSILON_DECAY = 0       # decay parameter of epsilon
+```
 
 ### Training 
 ![train result](ReportArtifacts/train.png)
